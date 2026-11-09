@@ -1,0 +1,20 @@
+use_default_settings: true
+
+general:
+  debug: false
+
+search:
+  safe_search: 2
+  formats:
+    - html
+    - json
+
+server:
+  # החלף למחרוזת אקראית וארוכה לפני פרסום השרת
+  secret_key: "REPLACE-WITH-A-LONG-RANDOM-SECRET"
+  limiter: true
+  image_proxy: false
+
+ui:
+  default_locale: "he"
+  query_in_title: true
