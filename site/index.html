@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020"><title>SearchX — חיפוש חכם</title>
+<style>
+:root{color-scheme:dark;--bg:#080d19;--panel:#111a2d;--muted:#91a0ba;--line:#24324b;--accent:#7c9cff;--text:#edf2ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#1b2d53 0,transparent 55%),var(--bg);color:var(--text);font:16px/1.6 system-ui,Arial,sans-serif;min-height:100vh}
+header{max-width:1000px;margin:auto;padding:28px 22px 12px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:25px;font-weight:800;letter-spacing:-1px}.logo b{color:var(--accent)}.tag{color:var(--muted);font-size:13px}
+main{max-width:850px;margin:8vh auto 60px;padding:0 22px}.hero{text-align:center;margin-bottom:28px}.mark{width:66px;height:66px;border-radius:22px;background:linear-gradient(135deg,#7897ff,#a18bff);display:grid;place-items:center;margin:0 auto 18px;box-shadow:0 12px 45px #6688ff44;font-size:31px;font-weight:900;color:#091020}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.15;margin:0 0 10px}.sub{color:var(--muted);margin:0}
+.searchbox{display:flex;gap:10px;background:#111a2d;border:1px solid #344361;border-radius:18px;padding:8px;box-shadow:0 20px 60px #0006}
+.searchbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px #7c9cff22,0 20px 60px #0006}
+input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font:inherit;padding:12px 14px}
+button{border:0;border-radius:12px;background:linear-gradient(135deg,#7c9cff,#9c86ff);color:#071020;font:700 15px system-ui;padding:0 25px;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+.tools{display:flex;justify-content:center;gap:18px;margin:15px 0 35px;color:var(--muted);font-size:13px}.tools label{display:flex;gap:7px;align-items:center}.tools select{background:#111a2d;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px}
+#status{color:var(--muted);text-align:center;margin:20px 0}.results{display:grid;gap:13px}.result{background:#10192a;border:1px solid var(--line);border-radius:15px;padding:17px 19px;transition:.18s}.result:hover{border-color:#607fc5;transform:translateY(-1px)}.result a{color:#a9bdff;text-decoration:none;font-size:18px;font-weight:650}.result a:hover{text-decoration:underline}.url{color:#8dbe9d;font-size:12px;direction:ltr;text-align:right;overflow-wrap:anywhere;margin:4px 0 7px}.snippet{color:#c1cbe0;font-size:14px}.empty{background:#10192a;border:1px dashed var(--line);border-radius:15px;padding:24px;text-align:center;color:var(--muted)}
+footer{text-align:center;color:#64728b;font-size:12px;padding:30px 15px}
+@media(max-width:560px){header{padding:20px 16px}.tag{display:none}main{margin-top:6vh;padding:0 15px}.searchbox{gap:4px}.searchbox button{padding:0 15px}.tools{flex-wrap:wrap}}
+</style></head>
+<body>
+<header><div class="logo">Search<b>X</b></div><div class="tag">חיפוש ברשת. בדרך שלך.</div></header>
+<main>
+<section class="hero"><div class="mark">X</div><h1>מה מחפשים היום?</h1><p class="sub">חיפוש ממקורות רבים ברשת, בתצוגה נקייה אחת.</p></section>
+<form class="searchbox" id="form"><input id="q" type="search" placeholder="הקלד מילת חיפוש..." autocomplete="off" required><button id="go" type="submit">חפש</button></form>
+<div class="tools"><label>שפה <select id="lang"><option value="all">כל השפות</option><option value="he">עברית</option><option value="en">אנגלית</option></select></label><label>סינון בטוח <select id="safe"><option value="2">מחמיר</option><option value="1">בינוני</option><option value="0">כבוי</option></select></label></div>
+<div id="status" aria-live="polite">הקלד חיפוש כדי להתחיל</div><section class="results" id="results"></section>
+</main><footer>SearchX · מופעל באמצעות SearXNG · תוצאות החיפוש מסופקות ממנועי חיפוש חיצוניים</footer>
+<script>
+const form=document.querySelector('#form'),q=document.querySelector('#q'),go=document.querySelector('#go'),statusEl=document.querySelector('#status'),results=document.querySelector('#results');
+function safeUrl(value){try{const u=new URL(value);return ['http:','https:'].includes(u.protocol)?u.href:null}catch{return null}}
+function host(value){try{return new URL(value).hostname}catch{return value||''}}
+form.addEventListener('submit',async e=>{e.preventDefault();const query=q.value.trim();if(!query)return;
+go.disabled=true;go.textContent='מחפש…';statusEl.textContent='מחפש ברחבי הרשת…';results.replaceChildren();
+try{
+ const params=new URLSearchParams({q:query,format:'json',language:document.querySelector('#lang').value,safesearch:document.querySelector('#safe').value});
+ const response=await fetch('/api/?'+params.toString(),{headers:{'Accept':'application/json'}});
+ if(!response.ok)throw new Error(response.status===429?'שרת החיפוש עמוס כרגע. נסה שוב בעוד דקה.':'שגיאת שרת ('+response.status+'). בדוק שהשרת פועל.');
+ const data=await response.json();const items=Array.isArray(data.results)?data.results:[];
+ if(!items.length){statusEl.textContent='לא נמצאו תוצאות. נסה ניסוח אחר.';return}
+ statusEl.textContent='נמצאו '+items.length+' תוצאות';
+ for(const item of items){const url=safeUrl(item.url);if(!url)continue;const card=document.createElement('article');card.className='result';const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=item.title||host(url);const domain=document.createElement('div');domain.className='url';domain.textContent=host(url);const snippet=document.createElement('div');snippet.className='snippet';snippet.textContent=item.content||item.description||'';card.append(a,domain,snippet);results.append(card)}
+ if(!results.children.length)statusEl.textContent='התקבלו תוצאות לא תקינות מהשרת.';
+}catch(err){statusEl.textContent=err.message||'לא ניתן להתחבר למנוע החיפוש.';results.innerHTML='<div class="empty">ייתכן שהשרת עדיין לא הוגדר או שמנועי החיפוש חסמו זמנית את הבקשה.</div>'}
+finally{go.disabled=false;go.textContent='חפש'}
+});
+</script></body></html>
