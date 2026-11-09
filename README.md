@@ -13,21 +13,22 @@
 ## הפעלה מקומית
 נדרשת התקנת Docker Desktop.
 1. הורד את המאגר למחשב ופתח את התיקייה.
-2. צור מפתח סודי אקראי ארוך והחלף את הערך `REPLACE-WITH-A-LONG-RANDOM-SECRET` בקובץ `searxng/settings.yml`.
-3. פתח Terminal בתיקייה והרץ: `docker compose up -d`.
+2. החלף את הערך `REPLACE-WITH-A-LONG-RANDOM-SECRET` בקובץ `searxng/settings.yml` במחרוזת אקראית ארוכה.
+3. הרץ בטרמינל מתוך התיקייה: `docker compose up -d`.
 4. פתח: http://localhost:8080
 
 ## העלאה לשרת (VPS)
-נדרש שרת Linux עם Docker ו-Docker Compose, ופתיחת פורט 8080 (או 80/443 דרך reverse proxy עם HTTPS).
-1. התקן Docker ו-Docker Compose בשרת.
+נדרש שרת Linux עם Docker ו-Docker Compose.
+1. התקן Docker בשרת.
 2. שכפל את המאגר: `git clone https://github.com/m0556737829-tech/SearchX.git` ואז `cd SearchX`.
-3. החלף את ה-secret ב-`searxng/settings.yml` במחרוזת אקראית ארוכה וייחודית.
-4. הגדר ב-`docker-compose.yml` את `SEARXNG_BASE_URL` לכתובת הציבורית שלך, כולל HTTPS ולוכסן בסוף.
+3. החלף ב-`searxng/settings.yml` את `REPLACE-WITH-A-LONG-RANDOM-SECRET` במפתח אקראי ארוך (אפשר ליצור עם `openssl rand -hex 32`).
+4. צור קובץ `.env` מהתבנית: `cp .env.example .env`, וערוך בו את `SEARXNG_BASE_URL` לכתובת הציבורית שלך, כולל HTTPS ולוכסן בסוף.
 5. הרץ: `docker compose up -d`.
-6. בדוק: `http://IP-של-השרת:8080/health`, ואז פתח את כתובת האתר.
+6. פתח בחומת האש של השרת את פורט 8080 לבדיקה, ובדוק: `http://IP-של-השרת:8080/health`.
+7. לאחר חיבור דומיין מומלץ להוסיף HTTPS דרך reverse proxy.
 
 ## חשוב לדעת
 - GitHub Pages לבדו אינו יכול להריץ את שרת החיפוש. המנוע דורש שרת Docker פעיל.
 - אין צורך במפתח Google או Serper. SearXNG פונה למקורות החיפוש שהוגדרו בו.
 - אי אפשר להבטיח שכל חיפוש יגיע ל-Google: מנועי חיפוש עשויים לחסום בקשות, להגביל קצב או לשנות ממשק. התוצאות עשויות להגיע ממקורות אחרים.
-- לפני שימוש ציבורי מומלץ להוסיף HTTPS, דומיין, חומת אש והגבלת קצב מתאימה. תצורת ברירת המחדל כאן מיועדת להקמה ראשונית ולא לשירות ציבורי גדול.
+- התצורה הנוכחית מיועדת להקמה ראשונית. לפני שימוש ציבורי משמעותי יש להגדיר HTTPS, חומת אש והגנה מתאימה מפני שימוש לרעה.
