@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     environment:
       - SEARXNG_BASE_URL=${SEARXNG_BASE_URL:-http://localhost:8080/}
-      - SEARXNG_SECRET=${SEARXNG_SECRET}
     volumes:
       - ./searxng:/etc/searxng:rw
     networks: [searchx]
