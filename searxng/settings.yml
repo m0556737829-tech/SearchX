@@ -2,18 +2,20 @@ use_default_settings: true
 
 general:
   debug: false
+  instance_name: "SearchX"
 
 search:
-  safe_search: 2
+  safe_search: 1
+  default_lang: "he"
   formats:
     - html
     - json
 
 server:
-  # החלף למחרוזת אקראית וארוכה לפני פרסום השרת
+  # Set a unique long random secret in the deployment environment.
   secret_key: "REPLACE-WITH-A-LONG-RANDOM-SECRET"
-  limiter: true
-  image_proxy: false
+  limiter: false
+  image_proxy: true
 
 ui:
   default_locale: "he"
