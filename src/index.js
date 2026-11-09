@@ -1,9 +1,16 @@
+const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, OPTIONS",
+  "access-control-allow-headers": "Content-Type, Accept",
+  "access-control-max-age": "86400"
+};
+
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status,
   headers: {
+    ...corsHeaders,
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store",
-    "access-control-allow-origin": "*"
+    "cache-control": "no-store"
   }
 });
 
@@ -11,12 +18,15 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Allow HTML files opened locally (file://) to call this Worker.
+    if (request.method === "OPTIONS" && url.pathname === "/api/search") {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
     if (url.pathname === "/api/search") {
       const query = (url.searchParams.get("q") || "").trim();
       if (!query) return json({ results: [] }, 400);
 
-      // The search provider is configured separately. Never pretend that
-      // the interface itself is a search backend.
       if (!env.SEARXNG_BASE_URL) {
         return json({
           error: "Search provider is not configured yet.",
