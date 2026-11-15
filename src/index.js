@@ -30,8 +30,8 @@ async function googleSearch(query,language,page){
 }
 export default {async fetch(request,env){
  const url=new URL(request.url);
- if(request.method==="OPTIONS"&&url.pathname==="/api/search")return new Response(null,{status:204,headers:corsHeaders});
- if(url.pathname==="/api/search"){
+ if(request.method==="OPTIONS"&&(url.pathname==="/api/search"||(url.pathname==="/"&&url.searchParams.has("q"))))return new Response(null,{status:204,headers:corsHeaders});
+ if(url.pathname==="/api/search"||(url.pathname==="/"&&url.searchParams.has("q"))){
   if(request.method!=="GET")return json({error:"Method not allowed",results:[]},405);
   const q=(url.searchParams.get("q")||"").trim();if(!q)return json({error:"יש להזין מילת חיפוש.",results:[]},400);
   if(q.length>300)return json({error:"השאילתה ארוכה מדי (מקסימום 300 תווים).",results:[]},400);
