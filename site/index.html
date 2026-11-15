@@ -69,7 +69,7 @@ async function checkAllSources(){
  button.disabled=true;button.textContent="בודק את המקורות…";panel.hidden=false;
  panel.innerHTML='<div class="healthsummary">מתחבר לשרת ובודק את כל המקורות במקביל…</div>';
  try{
-  const response=await fetch(API_BASE+"/api/health",{headers:{Accept:"application/json"}});
+  const response=await fetch(API_BASE+"/?health=1",{headers:{Accept:"application/json"}});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||("HTTP "+response.status));
   const rows=(data.checks||[]).map(x=>'<div class="healthitem '+(x.ok?'ok':'fail')+'"><span>'+escapeHtml(x.name)+'</span><strong>'+(x.ok?'תקין':'נכשל')+'</strong><small>'+(x.status||x.error||'—')+' · '+x.ms+'ms</small></div>').join("");
