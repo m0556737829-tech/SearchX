@@ -28,9 +28,52 @@ async function googleSearch(query,language,page){
  const results=extractResults(html);if(!results.length)return {error:"Google החזיר עמוד, אך מבנה התוצאות לא זוהה. ייתכן ש-Google שינה את העמוד או הציג בדיקת אבטחה.",results:[],status:502};
  return {results,status:200}
 }
+
+const healthSources = [
+  ["Google","https://www.google.com/search?q=SearchX+test"],
+  ["ויקיפדיה","https://he.wikipedia.org/w/api.php?action=query&list=search&srsearch=test&format=json"],
+  ["Wikimedia Commons","https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=test&format=json"],
+  ["GDELT חדשות","https://api.gdeltproject.org/api/v2/doc/doc?query=test&mode=ArtList&format=json&maxrecords=1"],
+  ["Internet Archive","https://archive.org/advancedsearch.php?q=test&rows=1&output=json"],
+  ["Open Library","https://openlibrary.org/search.json?q=test&limit=1"],
+  ["Crossref","https://api.crossref.org/works?query=test&rows=1"],
+  ["OpenAlex","https://api.openalex.org/works?search=test&per-page=1"],
+  ["Stack Exchange","https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=test&site=stackoverflow&pagesize=1"],
+  ["Openverse","https://api.openverse.org/v1/images/?q=test&page_size=1"],
+  ["מתמחים טופ","https://mitmachim.top/"],
+  ["פרוג","https://www.prog.co.il/"],
+  ["Ynet","https://www.ynet.co.il/"],
+  ["Walla","https://www.walla.co.il/"],
+  ["Mako","https://www.mako.co.il/"],
+  ["N12","https://www.n12.co.il/"],
+  ["Globes","https://www.globes.co.il/"],
+  ["Calcalist","https://www.calcalist.co.il/"],
+  ["Geektime","https://www.geektime.co.il/"],
+  ["כאן","https://www.kan.org.il/"]
+];
+async function checkSource(name,target){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000),started=Date.now();
+ try{
+  const response=await fetch(target,{method:"GET",headers:{"user-agent":"SearchX-source-check/1.0","accept":"application/json,text/html,*/*"},redirect:"follow",signal:controller.signal});
+  try{await response.body?.cancel()}catch{}
+  return {name,ok:response.status>=200&&response.status<400,status:response.status,ms:Date.now()-started};
+ }catch(error){
+  return {name,ok:false,status:0,ms:Date.now()-started,error:error?.name==="AbortError"?"timeout":(error?.message||"network error").slice(0,120)};
+ }finally{clearTimeout(timer)}
+}
+async function checkAllSources(){
+ const checks=await Promise.all(healthSources.map(([name,target])=>checkSource(name,target)));
+ return {checkedAt:new Date().toISOString(),total:checks.length,ok:checks.filter(x=>x.ok).length,failed:checks.filter(x=>!x.ok).length,checks};
+}
+
 export default {async fetch(request,env){
  const url=new URL(request.url);
  if(request.method==="OPTIONS"&&(url.pathname==="/api/search"||(url.pathname==="/"&&url.searchParams.has("q"))))return new Response(null,{status:204,headers:corsHeaders});
+ if(url.pathname==="/api/health"||(url.pathname==="/"&&url.searchParams.has("health"))){
+  if(request.method!=="GET")return json({error:"Method not allowed"},405);
+  const report=await checkAllSources();
+  return json(report,200);
+ }
  if(url.pathname==="/api/search"||(url.pathname==="/"&&url.searchParams.has("q"))){
   if(request.method!=="GET")return json({error:"Method not allowed",results:[]},405);
   const q=(url.searchParams.get("q")||"").trim();if(!q)return json({error:"יש להזין מילת חיפוש.",results:[]},400);
