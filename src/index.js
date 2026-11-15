@@ -68,7 +68,7 @@ async function checkAllSources(){
 
 export default {async fetch(request,env){
  const url=new URL(request.url);
- if(request.method==="OPTIONS"&&(url.pathname==="/api/search"||(url.pathname==="/"&&url.searchParams.has("q"))))return new Response(null,{status:204,headers:corsHeaders});
+ if(request.method==="OPTIONS"&&(url.pathname==="/api/search"||url.pathname==="/api/health"||(url.pathname==="/"&&(url.searchParams.has("q")||url.searchParams.has("health"))))return new Response(null,{status:204,headers:corsHeaders});
  if(url.pathname==="/api/health"||(url.pathname==="/"&&url.searchParams.has("health"))){
   if(request.method!=="GET")return json({error:"Method not allowed"},405);
   const report=await checkAllSources();
